@@ -28,7 +28,8 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 2. Try typing "help" or "help <command name>" to find commands.  You can also try the [Mapshaper command reference](https://github.com/mbloch/mapshaper/wiki/Command-Reference) for a web interface.
 3. Figure out which command you need to remove ALL except the `TRACT_FLT` field.
 
-### Challenge 2 Answer: 
+### Challenge 2 Answer:
+
 >!  Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
 
 <details>

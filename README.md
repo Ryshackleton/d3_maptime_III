@@ -30,7 +30,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 
 ### Challenge 2 Answer:
 
->!  Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
+!> Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
 
 <details>
  <summary><strong>Challenge 2 Answer</strong></summary>

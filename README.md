@@ -35,7 +35,6 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 <details>
  <summary><strong>Challenge 2 Answer</strong></summary>
  <p>
- ##*formatted*
  1. Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
  2. Now use the info button and mouse over each tract to be sure that only the `TRACT_FLT` field is still there.
  </p>

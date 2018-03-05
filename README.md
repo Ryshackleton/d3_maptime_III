@@ -43,6 +43,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 <details>
  <summary><strong>Challenge 3 Answer</strong></summary>
  <p>
+  
 ```
 join IHME_location_id_TO_tract_id.csv keys=TRACT_FLT,tract_id
 ```
@@ -62,11 +63,15 @@ npm install -g mapshaper
 * Start the command with ```mapshaper -i <filename>```
 * Each additional command can be added as a ```-<command name> <arguments>```, so our Challenge 2 example would be:
 ```bash
+#!/usr/bin/env bash
+
 mapshaper -i './tracts10_shore.shp' \
     -filter-fields 'TRACT_FLT' \
 ```
 * And finally, tell it what format, and what to output with ```-o format=topojson force king_county_census_transects.json```.  Notice that I have to add a `\` to escape the carriage return
 ```bash
+#!/usr/bin/env bash
+
 mapshaper -i './tracts10_shore.shp' \
     -filter-fields 'TRACT_FLT' \
     -o format=topojson force king_county_census_transects.json

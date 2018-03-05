@@ -30,15 +30,16 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 
 ### Challenge 2 Answer:
 
-!> Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
-
 <details>
  <summary><strong>Challenge 2 Answer</strong></summary>
  <p>
+  
  1. Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
  2. Now use the info button and mouse over each tract to be sure that only the `TRACT_FLT` field is still there.
+ 
  </p>
 </details>
+
 
 ```
 join IHME_location_id_TO_tract_id.csv keys=TRACT_FLT,tract_id

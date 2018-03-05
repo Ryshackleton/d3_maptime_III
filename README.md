@@ -61,11 +61,17 @@ npm install -g mapshaper
 
 * Start the command with ```mapshaper -i <filename>```
 * Each additional command can be added as a ```-<command name> <arguments>```, so our Challenge 2 example would be:
-```
+```bash
 mapshaper -i './tracts10_shore.shp' \
     -filter-fields 'TRACT_FLT' \
 ```
-* And tell it what format, and what to output with ```-o format=topojson force king_county_census_transects.json```.  Notice that I have to add a `\` to escape the carriage return
+* And finally, tell it what format, and what to output with ```-o format=topojson force king_county_census_transects.json```.  Notice that I have to add a `\` to escape the carriage return
+```bash
+mapshaper -i './tracts10_shore.shp' \
+    -filter-fields 'TRACT_FLT' \
+    -o format=topojson force king_county_census_transects.json
+```
+
 </p>
 </details>
 

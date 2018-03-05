@@ -29,7 +29,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 3. Figure out which command you need to remove ALL except the `TRACT_FLT` field.
 
 <details>
- <summary>Challenge 2 Answer</summary>
+ <summary><strong>Challenge 2 Answer</strong></summary>
 Type the following into the Mapshaper console
 
 ```

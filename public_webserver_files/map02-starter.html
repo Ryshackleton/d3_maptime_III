@@ -128,13 +128,13 @@
   }
 
   function parseMortalityData(data) {
-    /** filter out data we don't need (we only want age standardized, Deaths, for Both Sexes */
+    /** filter out data we don't need (we only want age standardized, Deaths, for Both Sexes) */
     var filteredData = data.filter(function (datum) {
       return +datum.age_group_id === 27 // age standardized only
         && +datum.measure_id === 1 // only Deaths
         && +datum.sex_id === 3; // only both sexes
     });
-    /** compute min and max os the current dataset */
+    /** compute min and max of the current dataset */
     var minMax = filteredData
       .filter(function (datum) {
         return +datum.year_id === year;

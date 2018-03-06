@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--Header info, scripts, etc-->
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Intro Map</title>
+    <!--D3 version 4-->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <!--TopoJSON version 3-->
+    <script src="https://unpkg.com/topojson@3"></script>
+    <!--D3 Scale Chromatic -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+</head>
+
+<!--css -->
+<style>
+    body {
+        padding: 10px;
+        margin: 0;
+    }
+
+    path {
+        /* fill: whitesmoke; */
+        stroke: black;
+        stroke-width: 1px;
+    }
+
+    .map-container {
+        height: 80vh;
+    }
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<!--page content-->
+<body>
+<h1>D3 Intro Map</h1>
+<div class="map-container"></div>
+
+<!--JavaScript-->
+<script>
+  var dataFileName = 'IHME_KING_COUNTY_WA_MORTALITY_1990_2014_OPIOID_USE_DISORDERS_Y2017M09D05.CSV'
+  var mortalityData = {};
+  var year = 2014;
+  console.log(d3.schemeBlues);
+  var colorScale = d3.scaleOrdinal()
+    .range(d3.schemeBlues[9]);
+
+  d3.queue()
+  /** parse mortality data and save to mortality data variable */
+    .defer(d3.csv, 'data/' + dataFileName)
+    /** parse the king county TopoJSON, and pass the results to
+     * the buildChoroplethMap() function after defer */
+    .defer(d3.json, 'data/king_county_census_tracts.json')
+    .awaitAll(function (error, results) {
+      mortalityData = parseMortalityData(results[0]);
+      buildChoroplethMap(results[1]);
+    });
+
+  /** take the result of parsing the topojson using d3.json() and build the map */
+  function buildChoroplethMap(topology) {
+    /** convert the compressed TopoJSON (topology) -> GeoJSON and get each layer */
+    var censusTractsGeoJSON = topojson.feature(topology, topology.objects.census_tracts);
+
+    /** Get size of the window, and compute some sizing parameters relative to the window
+     * ...these will be used by projection.fitExtent() below to size and scale the map */
+    var mapWidth = window.innerWidth * 0.8;  // map width will be 80% of the view height (pixels)
+    var mapHeight = window.innerHeight * 0.8; // map height will be 80% of the view height (pixels)
+    var mapWidthHeight = d3.min([mapWidth, mapHeight]); // take the minimum, and make it square (pixels)
+    var mapPadddingTop = 0; // padding around map geometry (pixels)
+    var mapPadddingLeft = 100; // padding around map geometry (pixels)
+
+    /** find the centroid of the topology in long, lat */
+    var mapCentroid = d3.geoCentroid(censusTractsGeoJSON); // [longitude, latitude]
+    var longitudinalRotation = -mapCentroid[0]; // longitude
+
+    /** Create a projection that takes [longitude, latitude] and returns screen coordinates
+     *    [X, Y] in pixels
+     *    * Below, the longitudinal rotation (rotate([longitude, 0, 0])) "moves" the projection
+     *     to where our map is in longitude,
+     *    * Then, fitExtent() fits the map to the width and height, based on the bounding box
+     *     of the geoJSON we passed in
+     *  ***This assumes that the topology is in an un-projected coordinate system
+     *       (ie, lat/long values)****
+     *  (try replacing geoAlbers() with any other projection here:
+     *       https://github.com/d3/d3-geo/blob/master/README.md#geoAzimuthalEqualArea)
+     */
+    var projection = d3.geoAlbers()
+      .rotate([longitudinalRotation, 0])
+      .fitExtent([[mapPadddingLeft, mapPadddingTop], [mapWidthHeight, mapWidthHeight]], censusTractsGeoJSON);
+
+    /** The geoPath takes in arrays of [long, lat] values and converts them to svg <path> objects */
+    var geoPath = d3.geoPath()
+      .projection(projection);
+
+    /** select the div with the class 'map-container', and add an svg to it,
+     *  store the svg "selection" as svg_selection */
+    var svg_selection = d3.select('.map-container')
+      .append('svg');
+
+    /** append a group (g) to the svg */
+    svg_selection.append('g')
+    /** add the class name 'census_tracts' to the group */
+      .classed('census_tracts', true)
+      /** select any existing path nodes (there aren't any, but this also tells d3 that we're about to join some data to paths) */
+      .selectAll('path')
+      /** create a data join with the array of census tract boundaries (enter, update, exit are the 'selections') */
+      .data(censusTractsGeoJSON.features)
+      /** get the objects representing new data coming into the view 'enter selection' */
+      .enter()
+      /** append an svg <path> node to each of the newly entering objects */
+      .append('path')
+      /** add the class name 'census_tract_boundary' to each path */
+      .classed('census_tract_boundary', true)
+      /** the 'd' attribute represents the drawing instructions for each path (line), so set the geoPath function to get that line drawing */
+      .attr('d', geoPath)
+      .attr('fill', function (datum) {
+        var mortalityDataObject = mortalityData[datum.properties.location_id];
+        if (mortalityDataObject === undefined) {
+          return colorScale(9999);
+        }
+        var mortalityValue = +mortalityData[datum.properties.location_id][year].val;
+        return colorScale(mortalityValue);
+      });
+  }
+
+  function parseMortalityData(data) {
+    /** filter out data we don't need (we only want age standardized, Deaths, for Both Sexes */
+    var filteredData = data.filter(function (datum) {
+      return +datum.age_group_id === 27 // age standardized only
+        && +datum.measure_id === 1 // only Deaths
+        && +datum.sex_id === 3; // only both sexes
+    });
+    /** compute min and max os the current dataset */
+    var minMax = filteredData
+      .filter(function (datum) {
+        return +datum.year_id === year;
+      })
+      .reduce(function (acc, datum) {
+        if (acc[0] < +datum.value) {
+          acc[0] = +datum.value;
+        }
+        if (acc[1] > +datum.value) {
+          acc[1] = +datum.value;
+        }
+        return acc;
+      }, [Infinity, -Infinity]);
+    /** assign the color scale */
+    colorScale.domain(d3.range(minMax[0], minMax[1]));
+
+    /** key the filtered data by location_id, then by year_id */
+    return filteredData
+      .reduce(function (acc, datum) {
+        if (acc[+datum.location_id] === undefined) {
+          acc[+datum.location_id] = {};
+        }
+        acc[+datum.location_id][datum.year_id] = datum;
+        return acc;
+      }, {});
+  }
+</script>
+</body>
+</html>

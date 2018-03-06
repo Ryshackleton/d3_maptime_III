@@ -54,8 +54,6 @@ And this is the rendered version of that code:
 
 SVG's work similarly to html pages, where tags represent objects that can have *objects nested within them*: each circle is an element *nested within* the SVG. Each circle contains some coordinates of the object's center (cx, cy), and radius (r), so the SVG is just a set of instructions defining the geometry of each object, where to put each object, and how to style the objects in [the SVG coordinate space](https://bl.ocks.org/mbostock/3019563).
 
-<img src="https://ryshackleton.github.io/d3_maptime_III/images/svg_coordinate_system.svg">
-
 It's also worth noting that D3 has the ability to select, write, and edit any element on the [HTML DOM](https://www.w3schools.com/js/js_htmldom.asp), and [any of the SVG shape elements](https://www.w3schools.com/graphics/svg_examples.asp) like rectangles and lines.  Later we'll learn to use D3 to create [`<path>` elements](https://www.w3schools.com/graphics/svg_path.asp)  to draw complex country boundaries on our map.
 
 # Tutorial Time!
@@ -68,10 +66,6 @@ You will also need a local web server.  Here are 2 good options:
 1. Here's a [Chrome app](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en) that's lightweight and works great. Upon opening the app, it will prompt you to choose a folder to serve files from.
 2. [MAMP](https://www.mamp.info/en/) is a free apache webserver for MacOS and Windows. (on MacOS, you'll put your files in `/Applications/MAMP/htdocs/`, and usually access your files via http://localhost:8888/)
 
-## What map are we making?
-With any luck, today we will produce **[this map](https://bl.ocks.org/Ryshackleton/52c97ff17236c2accccdadc47b122228/71e8c79a711b532565b97a16c83dc222246568d2)**, which displays [a GeoJSON feed of daily earthquakes around the world](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php).  We'll do this in steps:
-
-
 ## Tips
 
 * The learning curve can be pretty steep. Stay positive.  Ask lots of questions.
@@ -79,11 +73,39 @@ With any luck, today we will produce **[this map](https://bl.ocks.org/Ryshacklet
 * Refer to [documentation](https://github.com/d3/d3/blob/master/API.md) / [tutorials](https://github.com/d3/d3/wiki/Tutorials)
 * **Cannibalize code** wherever/whenever you can. D3 has [great examples](https://bl.ocks.org/) and most the code is freely accessible.
 * In this tutorial, **SOLUTIONS ARE PROVIDED AT THE END OF EVERY STEP** under headings like this:
-	### nth Challenge Solution Here
-	### Or [clone this git repo](https://github.com/Ryshackleton/d3_maptime.git) to get all of the starter/solution files ahead of time
+
+<details>
+ <summary><strong>Challenge Answer</strong></summary>
+ <p>
+
+You found the answer!
+
+ </p>
+</details>
+
+## What map are we making?
+
+Today, we'll build a choropleth of some local health data from the Institute for Health Metrics and Evaluation.  Specifically, we'll be building a colored map showing Mortality Rates due to opioid use disorders.
+
+We'll just build the choropleth part of [this Leaflet-based map](http://ihmeuw.org/4cs9)
+
+The steps will be:
+
+1. Wrangle the Data
+    * this is mostly done for you, but we'll look at the data to figure out how to match up our data file to the census tracts on our map
+1. Convert our shapefile to TopoJSON
+    * TopoJSON is a compressed vector format for the web. We'll use Mapshaper to manipulate the shapefile to fit our needs
+1. Use D3 to build the map
+
+## Git Repo
+
+[Clone this repo for the starter files.](https://github.com/Ryshackleton/d3_maptime_III.git)
+
 ## Data Wrangling
 
+
 ### Data Sources
+
 [King County GIS data portal](https://www5.kingcounty.gov/gisdataportal/)
 [Census Tracts Shapefile](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=tracts10_shore)
 

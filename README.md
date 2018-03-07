@@ -50,11 +50,11 @@ SVGs are human readable, which works well for us because we aren't computers. Th
 
 And this is the rendered version of that code:
 
-<img src="images/three-little-circles.png">
+<img src="images/three-little-circles.png"/>
 
 SVG's work similarly to html pages, where tags represent objects that can have *objects nested within them*: each circle is an element *nested within* the SVG. Each circle contains some coordinates of the object's center (cx, cy), and radius (r), so the SVG is just a set of instructions defining the geometry of each object, where to put each object, and how to style the objects in [the SVG coordinate space](https://bl.ocks.org/mbostock/3019563).
 
-<img src="images/svg_coordinate_system.png">
+<img src="images/svg_coordinate_system.png"/>
 
 It's also worth noting that D3 has the ability to select, write, and edit any element on the [HTML DOM](https://www.w3schools.com/js/js_htmldom.asp), and [any of the SVG shape elements](https://www.w3schools.com/graphics/svg_examples.asp) like rectangles and lines.  Later we'll learn to use D3 to create [`<path>` elements](https://www.w3schools.com/graphics/svg_path.asp)  to draw complex country boundaries on our map.
 
@@ -90,7 +90,7 @@ You found the answer!
 
 Today, we'll build a choropleth of some local health data from the Institute for Health Metrics and Evaluation.  Specifically, we'll be building a colored map showing Mortality Rates due to opioid use disorders.
 
-![Final Map](images/FinalMap.png)
+<img src="images/FinalMap.png"/>
 
 We're basically building just the choropleth part of [this Leaflet-based map](http://ihmeuw.org/4cs9), so you can compare your results to this one.
 
@@ -129,6 +129,8 @@ The main issue with the geographic data is that the census tracts are indexed by
 ## 1) Convert Shapefile to TopoJSON and JOIN `location_id` to the topology
 
 [TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature) is a simplified geographic format that ensures that all vertices are shared between different lines in a geometry, with arcs indexed between the shared vertices. This makes for very, very small files that can be quickly transmitted over the web.
+
+<img src="images/topojson.png"/>
 
 Think of TopoJSON as a zipped GeoJSON.  The general technique in web development is to send the TopoJSON 'over the wire', then unzip it to GeoJSON on the client side, or in the user's browser using some other very small code.
 
@@ -169,7 +171,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 
 1. Find `/mapshaper_files/IHME_location_id_TO_tract_id.csv` and open it in a text editor.  This file contains a 'mapping' of census tract `tract_id` to IHME `location_id`.
 
-![IHME_location_id_TO_tract_id](images/IHME_location_ID_to_tract_id.png)
+<img src="images/IHME_location_ID_to_tract_id.png"/>
 
 2. We'll need to have the `location_id` field attached to our TopoJSON so we can link the IHME data to each census tract.  Let's JOIN that data using Mapshaper.
 

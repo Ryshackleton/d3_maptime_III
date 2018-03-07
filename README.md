@@ -213,7 +213,7 @@ You should be able to toggle the info button and mouse over the map to make sure
 
 ### Export the finished product!
 
-1. Just click the `Export` button in the top right, select ` and save your file!
+1. Just click the `Export` button in the top right, select `TopoJSON` and save your file!
 
 ![Export TopoJSON](images/ExportTopojson.png)
 
@@ -313,4 +313,4 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 * Open `public_webserver_files/03-legend-complete.html` to see the completed legend with labels.
 
-#### Building the census tracts...
+### Building the census tracts...

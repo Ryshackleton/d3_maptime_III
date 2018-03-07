@@ -162,7 +162,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 #### That extra data is nice, but all we need are the census tract numbers, which we'll use later. Let's delete all fields EXCEPT the `TRACT_FLT` field, which represents the tract id as a decimal value
 
 1. Click the "Console" button.  You'll get a prompt to type "tips" for examples.  Try it!
-2. Try typing "help" or "help <command name>" to find commands.  You can also try the [Mapshaper command reference](https://github.com/mbloch/mapshaper/wiki/Command-Reference) for a web interface.
+2. Try typing `help` or `help <command name>` to find commands.  You can also try the [Mapshaper command reference](https://github.com/mbloch/mapshaper/wiki/Command-Reference) for a web interface.
 3. Figure out which command you need to remove ALL except the `TRACT_FLT` field.
 
 <details>
@@ -190,6 +190,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 1. Click on the filename `IHME_location_id_TO_tract_id` at the top of the page and make the map layer the 'target layer' again.
 
 1. Now comes the hard part.  In the `Console` on the left.  Type `help join` and figure out what the command will be to join the `IHME_location_id_TO_tract_id.csv` data to the shapefile.  You're basically trying to map the keys `TRACT_FLT` and `tract_id`, which are the same in the shapefile and in the csv file.  This is a tough one, so if you get stuck just check out the answer below.
+1. Convert to TopoJSON format!
 
 <details>
  <summary><strong>Challenge 2b Answer</strong></summary>

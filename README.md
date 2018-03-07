@@ -105,7 +105,7 @@ The steps will be:
     * learn about D3 scales
 1. Use D3 to build the choropleth map
 
-## Data Wrangling
+## 1) Data Wrangling
 
 ### Dead people data
 The data for this tutorial comes from the [Institute for Health Metrics and Evaluation - Global Health Data Exchange](http://ghdx.healthdata.org/record/united-states-king-county-washington-life-expectancy-and-cause-specific-mortality-census), and consists of mortality rates due to opioid use from 1990-2014 (units are: *Deaths Per 100,000 people*).  The raw data file (`/public_webserver_files/data/IHME_KING_COUNTY_WA_MORTALITY_1990_2014_OPIOID_USE_DISORDERS_Y2017M09D05`) contains 119,400 rows and includes data for multiple years, for males, females, and both sexes, as well as for multiple age groups (All Ages, and Age Standardized).
@@ -126,7 +126,7 @@ The shapefile I'm using in this tutorial comes from the [King County GIS data po
 
 The main issue with the geographic data is that the census tracts are indexed by census tract number (`TRACT_FLT`), whereas the mortality data is indexed by IHME's `location_id`. We'll take care of that issue using Mapshaper.
 
-## 1) Convert Shapefile to TopoJSON and JOIN `location_id` to the topology
+## 2) Convert Shapefile to TopoJSON and JOIN `location_id` to the topology
 
 [TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature) is a simplified geographic format that ensures that all vertices are shared between different lines in a geometry, with arcs indexed between the shared vertices. This makes for very, very small files that can be quickly transmitted over the web.
 
@@ -147,7 +147,7 @@ Think of TopoJSON as a zipped GeoJSON.  The general technique in web development
 
 Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc) we don't really want.  We could either delete these using QGIS, or we could figure out how to let mapshaper do it for us.
 
-### Challenge 1a: Remove those extra data fields!
+### Challenge 2a: Remove those extra data fields!
 
 #### That extra data is nice, but all we need are the census tract numbers, which we'll use later. Let's delete all fields EXCEPT the `TRACT_FLT` field, which represents the tract id as a decimal value
 
@@ -156,7 +156,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 3. Figure out which command you need to remove ALL except the `TRACT_FLT` field.
 
 <details>
- <summary><strong>Challenge 1a Answer</strong></summary>
+ <summary><strong>Challenge 2a Answer</strong></summary>
  <p>
 
  1. Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
@@ -165,7 +165,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
  </p>
 </details>
 
-### Challenge 1b: Join Census Tract Number `TRACT_FLT` to IHME `location_id`
+### Challenge 2b: Join Census Tract Number `TRACT_FLT` to IHME `location_id`
 
 #### IHME data is indexed by IHME's own `location_id`, so ideally our topojson file will need to have `location_id` instead of `TRACT_FLT`.  Let's make that happen in mapshaper.
 
@@ -182,7 +182,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 1. Now comes the hard part.  In the `Console` on the left.  Type `help join` and figure out what the command will be to join the `IHME_location_id_TO_tract_id.csv` data to the shapefile.  You're basically trying to map the keys `TRACT_FLT` and `tract_id`, which are the same in the shapefile and in the csv file.  This is a tough one, so if you get stuck just check out the answer below.
 
 <details>
- <summary><strong>Challenge 1b Answer</strong></summary>
+ <summary><strong>Challenge 2b Answer</strong></summary>
  <p>
  Try the following command:
 
@@ -218,6 +218,10 @@ You should be able to toggle the info button and mouse over the map to make sure
 1. Just click the `Export` button in the top right, select `TopoJSON` and save your file!
 
 <img src="images/ExportTopojson.png" style="width:150px;height:150px;"/>
+
+* A copy of the results of this file is already in our public web files at:
+
+[`public_webserver_files/data/king_county_census_tracts.json`](https://github.com/Ryshackleton/d3_maptime_III/blob/master/public_webserver_files/data/king_county_census_tracts.json) (click to see the map on github's leaflet renderer)
 
 <details>
  <summary><strong>ADVANCED: How to build your own bash script to do this</strong></summary>
@@ -273,7 +277,7 @@ mapshaper -i './tracts10_shore.shp' \
 </p>
 </details>
 
-## 2) Making the D3 Map
+## 3) Use D3 to build a legend
 
 ### D3 Basics
 
@@ -380,12 +384,18 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 * Open `public_webserver_files/03-legend-complete.html` to see the completed legend with labels.
 
-### Building the census tracts...
+### 4) Use D3 to build the choropleth map
 
-* We'll go through this one together the challenge will be...
+* Open `public_webserver_files/04-build-census-tracts.html` to see how to use D3 projections to convert longitude,latitude -> pixels
+
+* We'll go through this one together, but if you want more detail, check out both of these resources:
+
+    *  STEP 5 of [our previous D3 Tutorial](http://maptimesea.github.io/2017/04/04/d3-mapping-II.html)
+    * [A much more thorough tutorial on D3 web mapping](http://duspviz.mit.edu/d3-workshop/mapping-data-with-d3/) that goes into more depth on this.
 
 #### CHALLENGE: Apply fill to the map colors in the same way we did for the legend
 
+* Open `public_webserver_files/05-color-census-tracts-START.html`
 * See somewhere around line 132:
 
 ```javascript
@@ -424,3 +434,27 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 </p>
 </details>
+
+#### Clustered Scales on Choropleths
+
+The linear color scale doesn't really let us see much contrast between census tracts, mainly because there seem to be lots of tracts in the low mortality range, and then a few in the high range. Most of the middle of our color range is empty.
+
+#### The solution: [Clustered Color Scales!](https://medium.com/@dschnr/using-clustering-to-create-a-new-d3-js-color-scale-dec4ccd639d2)
+
+* Check out the article to read about why Choropleth color scales are so important, then...
+* Open up `public_webserver_files/06-clustered-color-scale.html` to see an implementation of clustered color scales for our data.
+
+    * Notice that we pass the whole array of data into the `domain()` this particular scale, and it computes clusters to best represent the data
+    ```javascript
+    /** set the domain (input values) of the color scale */
+    colorScale.domain(data.map(function(datum) { return +datum.val; }))
+      .range(d3.schemeBlues[nColorBars]);
+    var clusters = colorScale.clusters();
+    ```
+    * Now the legend shows a few clusters with small data ranges in the low color end, and the higher end contains bigger ranges where there are fewer data values
+
+<img src="images/FinalMap.png"/>
+
+## The End
+
+### Pat yourself on the back for making it this far.  D3 is tough!

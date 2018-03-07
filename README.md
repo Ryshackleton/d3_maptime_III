@@ -126,7 +126,7 @@ The shapefile I'm using in this tutorial comes from the [King County GIS data po
 
 The main issue with the geographic data is that the census tracts are indexed by census tract number (`TRACT_FLT`), whereas the mortality data is indexed by IHME's `location_id`. We'll take care of that issue using Mapshaper.
 
-## 1) Convert Shapefile to TopoJSON
+## 1) Convert Shapefile to TopoJSON and JOIN `location_id` to the topology
 
 [TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature) is a simplified geographic format that ensures that all vertices are shared between different lines in a geometry, with arcs indexed between the shared vertices. This makes for very, very small files that can be quickly transmitted over the web.
 
@@ -169,7 +169,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 
 1. Find `/mapshaper_files/IHME_location_id_TO_tract_id.csv` and open it in a text editor.  This file contains a 'mapping' of census tract `tract_id` to IHME `location_id`.
 
-![IHME_location_id_TO_tract_id](images/IHME_location_id_TO_tract_id.png)
+![IHME_location_id_TO_tract_id](images/IHME_location_ID_to_tract_id.png)
 
 2. We'll need to have the `location_id` field attached to our TopoJSON so we can link the IHME data to each census tract.  Let's JOIN that data using Mapshaper.
 

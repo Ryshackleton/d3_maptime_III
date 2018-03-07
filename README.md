@@ -96,19 +96,21 @@ We're basically building just the choropleth part of [this Leaflet-based map](ht
 
 The steps will be:
 
-1. Wrangle the Data
-    * this is mostly done for you, but we'll look at the data to figure out how to match up our data file to the census tracts on our map
+1. Data Wrangling 
+    * Most of the data wrangling is done for you, but we'll look at the data to figure out how to match up our data file to the census tracts on our map
 1. Convert our shapefile to TopoJSON
     * TopoJSON is a compressed vector format for the web. We'll use Mapshaper to manipulate the shapefile to fit our needs
-1. A very brief intro to D3 and selections
-1. Use D3 to build the map
+1. Use D3 to build a legend
+    * a crash course learning experience in D3
+    * learn about D3 scales
+1. Use D3 to build the choropleth map
 
 ## Data Wrangling
 
 ### Dead people data
 The data for this tutorial comes from the [Institute for Health Metrics and Evaluation - Global Health Data Exchange](http://ghdx.healthdata.org/record/united-states-king-county-washington-life-expectancy-and-cause-specific-mortality-census), and consists of mortality rates due to opioid use from 1990-2014 (units are: *Deaths Per 100,000 people*).  The raw data file (`/public_webserver_files/data/IHME_KING_COUNTY_WA_MORTALITY_1990_2014_OPIOID_USE_DISORDERS_Y2017M09D05`) contains 119,400 rows and includes data for multiple years, for males, females, and both sexes, as well as for multiple age groups (All Ages, and Age Standardized).
 
-### I've filtered the data down to just the following data using this [Observable notebook](https://beta.observablehq.com/@ryshackleton/maptime-seattle-d3-mapping-iii)**
+#### I've filtered the data down to just the following data using this [Observable notebook](https://beta.observablehq.com/@ryshackleton/maptime-seattle-d3-mapping-iii)**
 
 
 * 2014 (the most recent year with suitably accurate data)
@@ -122,40 +124,37 @@ The data for this tutorial comes from the [Institute for Health Metrics and Eval
 
 The shapefile I'm using in this tutorial comes from the [King County GIS data portal](https://www5.kingcounty.gov/gisdataportal/).  We're using the [2010 Census Tracts Shapefile](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=tracts10_shore)
 
-### Shapefile to TopoJSON
+The main issue with the geographic data is that the census tracts are indexed by census tract number (`TRACT_FLT`), whereas the mortality data is indexed by IHME's `location_id`. We'll take care of that issue using Mapshaper.
 
-### Challenge 1: Use Mapshaper to figure out what attributes we have
+## 1) Convert Shapefile to TopoJSON
+
+[TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature) is a simplified geographic format that ensures that all vertices are shared between different lines in a geometry, with arcs indexed between the shared vertices. This makes for very, very small files that can be quickly transmitted over the web.
+
+Think of TopoJSON as a zipped GeoJSON.  The general technique in web development is to send the TopoJSON 'over the wire', then unzip it to GeoJSON on the client side, or in the user's browser using some other very small code.
+
+### Use Mapshaper to figure out what attributes we have
 
 #### [Mapshaper](http://mapshaper.org/) is an amazing command-line tool for reshaping map data, and has an amazing web-based tool to get started. This challenge will show you the basics.
 
 1. Go to [Mapshaper.org](http://mapshaper.org/)
 
-2. Drag your shape files into the mapshaper import window (tracts10_shore.shp and tracts10_shore.dbf)
-
-3. Notice that you can zoom, pan etc.  Click on the 'i' button on the top right.
-4. Mouse over your shapefile to get a tooltip that  shows the attributes for each census tract.
-
-<details>
- <summary><strong>Challenge 1 Answer</strong></summary>
- <p>
-
-If you can see the attributes in the tooltip, you succeeded!
-
- </p>
-</details>
+1. Find the census tract shapefile in your repo: `/mapshaper_files/census_tract_shapefiles/tracts10_shore.shp`.
+1. Drag ALL of the `tracts10_shore.*` files into the mapshaper import window (you really only need tracts10_shore.shp and tracts10_shore.dbf)
+1. Notice that you can zoom, pan etc.  Click on the 'i' button on the top right.
+1. Mouse over your shapefile to get a tooltip that  shows the attributes for each census tract.
 
 Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc) we don't really want.  We could either delete these using QGIS, or we could figure out how to let mapshaper do it for us.
 
-### Challenge 2: Remove those extra data fields!
+### Challenge 1a: Remove those extra data fields!
 
-#### That extra data is nice, but all we need are the census tract numbers, which we'll use to join to IHME's `location_id` field.  Let's delete all fields EXCEPT the `TRACT_FLT` field, which represents the tract id as a decimal value
+#### That extra data is nice, but all we need are the census tract numbers, which we'll use later. Let's delete all fields EXCEPT the `TRACT_FLT` field, which represents the tract id as a decimal value
 
 1. Click the "Console" button.  You'll get a prompt to type "tips" for examples.  Try it!
 2. Try typing "help" or "help <command name>" to find commands.  You can also try the [Mapshaper command reference](https://github.com/mbloch/mapshaper/wiki/Command-Reference) for a web interface.
 3. Figure out which command you need to remove ALL except the `TRACT_FLT` field.
 
 <details>
- <summary><strong>Challenge 2 Answer</strong></summary>
+ <summary><strong>Challenge 1a Answer</strong></summary>
  <p>
 
  1. Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
@@ -164,24 +163,62 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
  </p>
 </details>
 
-### Challenge 3: Join Census Tract Number `TRACT_FLT` to IHME `location_id`
+### Challenge 1b: Join Census Tract Number `TRACT_FLT` to IHME `location_id`
 
 #### IHME data is indexed by IHME's own `location_id`, so ideally our topojson file will need to have `location_id` instead of `TRACT_FLT`.  Let's make that happen in mapshaper.
-1. From the repo, open `./king_county_data_parsed/IHME_location_id_TO_tract_id.csv' in a text editor or in Excel
-2. 
+
+1. Find `/mapshaper_files/IHME_location_id_TO_tract_id.csv` and open it in a text editor.  This file contains a 'mapping' of census tract `tract_id` to IHME `location_id`.
+
+![IHME_location_id_TO_tract_id](images/IHME_location_id_TO_tract_id.png)
+
+2. We'll need to have the `location_id` field attached to our TopoJSON so we can link the IHME data to each census tract.  Let's JOIN that data using Mapshaper.
+
+1. *DRAG* the `IHME_location_id_TO_tract_id.csv` into the Mapshaper window and drop it into the same window with your King County Shapefile. You should get an `import` prompt, and when you click `import`, you should see a big grid of rectangles.
+
+1. Click on the filename `IHME_location_id_TO_tract_id` at the top of the page and make the map layer the 'target layer' again.
+
+1. Now comes the hard part.  In the `Console` on the left.  Type `help join` and figure out what the command will be to join the `IHME_location_id_TO_tract_id.csv` data to the shapefile.  You're basically trying to map the keys `TRACT_FLT` and `tract_id`, which are the same in the shapefile and in the csv file.  This is a tough one, so if you get stuck just check out the answer below.
 
 <details>
- <summary><strong>Challenge 3 Answer</strong></summary>
+ <summary><strong>Challenge 1b Answer</strong></summary>
  <p>
+ Try the following command:
 
 ```
 join IHME_location_id_TO_tract_id.csv keys=TRACT_FLT,tract_id
 ```
+
+You should be able to toggle the info button and mouse over the map to make sure you see `location_id` and `location_name` in the data fields.
 </p>
 </details>
 
+### REMOVE `IHME_location_id_TO_tract_id` from the list of layers
+
+* Click on the layers tab and close out the `IHME_location_id_TO_tract_id` layer. We won't need it any more now that the `location_id` has been joined to the shapefile.
+
+### Change the projection to WGS84
+
+1. D3 likes latitude and longitude, not the projected coordinate system that this shapefile is in.
+1. Type: `projections` in the console to see all of the projections you can use.
+1. Then type `proj wgs84` into the console to change the projection.
+
+### Simplify the layer
+
+1. Simplifying geometries is one thing that Mapshaper does really well.  This can be done either via the 'Simplify' tab, or via the command line.
+1. To use the command line: `simplify 0.1 keep-shapes` will simplify to 10% and `keep-shapes` ensures that no polygons are removed in the simplification process.
+
+### Rename the layer
+
+1. So easy. Just type `rename-layers census_tracts` into the console. When there are multiple layers, just use commas between the layers, which are in the order you see them in the dropdown.
+
+### Export the finished product!
+
+1. Just click the `Export` button in the top right, select ` and save your file!
+
+![Export TopoJSON](images/ExportTopojson.png)
+
 <details>
- <summary><strong>How to build your own bash script to do this:</strong></summary>
+ <summary><strong>ADVANCED: How to build your own bash script to do this</strong></summary>
 
 * Download and install [Node.js](https://nodejs.org/en/)**
 * Install mapshaper globally on your computer (-g flag)
@@ -190,23 +227,45 @@ npm install -g mapshaper
 ```
 **you may see it recommended to install Node via Hombrew or other package manager, but I wouldn't.  Installing a package manager with another package manager isn't always the best idea.
 
-* Add the bash tag
+* Add the bash tag `#!/usr/bin/env bash`
 * Start the command with ```mapshaper -i <filename>``` to tell mapshaper which file to open
-* Each additional command can be added as a ```-<command name> <arguments>```, so our Challenge 2 example would be:
+* Each additional command can be added as a ```-<command name> <arguments>```, so to get up to the first challenge, our script would look like:
 ```bash
 #!/usr/bin/env bash
 
 mapshaper -i './tracts10_shore.shp' \
     -filter-fields 'TRACT_FLT' \
 ```
-* And finally, tell it what format, and what to output with ```-o format=topojson force king_county_census_transects.json```.  Notice that I have to add a `\` to escape the carriage return
+
+* Adding subsequent commands.... (Notice that I have to add a `\` to escape the carriage return.)
+
+```
+#!/usr/bin/env bash
+
+mapshaper -i './tracts10_shore.shp' \
+    -proj crs=wgs84 \
+    -simplify 0.1 keep-shapes \
+    -filter-fields 'TRACT_FLT' \
+    -join '../IHME_location_id_TO_tract_id.csv' keys=TRACT_FLT,tract_id \
+    -rename-layers census_tracts \
+```
+
+* And finally, tell it what format, and what to output with ```-o format=topojson force king_county_census_transects.json```.
+
 ```bash
 #!/usr/bin/env bash
 
 mapshaper -i './tracts10_shore.shp' \
+    -proj crs=wgs84 \
+    -simplify 0.1 keep-shapes \
     -filter-fields 'TRACT_FLT' \
+    -join '../IHME_location_id_TO_tract_id.csv' keys=TRACT_FLT,tract_id \
+    -rename-layers census_tracts \
     -o format=topojson force king_county_census_transects.json
 ```
+
+* Save the file as `convertToTopojson.sh`, and you can just run `sh convertToTopojson.sh` to rebuild your topojson file.
+* Now you can repeat the fun for other shapefiles, or make tweaks to your scripts!
 
 </p>
 </details>
@@ -214,5 +273,4 @@ mapshaper -i './tracts10_shore.shp' \
 ## Making the D3 Map
 
 ### Links
-[TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature)
 

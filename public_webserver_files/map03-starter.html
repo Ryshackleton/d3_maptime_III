@@ -53,18 +53,12 @@
   var svg_selection = d3.select('.map-container')
     .append('svg');
 
-  /** the color scale for this choropleth map
-   * the domain() is an array of INPUT values
-   * the range() is an array of output values:
-   *    each value in the range is a hex color code (#ffff)
-   *    corresponding linearly to domain values
-   * see: https://github.com/d3/d3-scale#linear-scales
+  /** Clustered scale that takes all the data, finds clusters and outputs color ranges accordingly
    * (nColorBars = number of color bars in the scale,
    *    which must be 9 or less for compatibility with d3.schemeBlues)
    *    */
   var nColorBars = 9;
   var colorScale = d3.scaleCluster();
-
 
   /** PARSE THE DATA FROM FILES **
    * d3.queue() lets us parse 1 or more files,

@@ -1,6 +1,6 @@
 ---
 layout: tut
-title: "Mapping with D3.js - v2.0"
+title: "Mapping with D3.js - v3.0"
 ---
 
 # Intro
@@ -217,7 +217,7 @@ You should be able to toggle the info button and mouse over the map to make sure
 
 1. Just click the `Export` button in the top right, select `TopoJSON` and save your file!
 
-<img src="images/ExportTopojson.png" style="width:200px;height:200px;"/>
+<img src="images/ExportTopojson.png" style="width:150px;height:150px;"/>
 
 <details>
  <summary><strong>ADVANCED: How to build your own bash script to do this</strong></summary>

@@ -50,7 +50,7 @@ SVGs are human readable, which works well for us because we aren't computers. Th
 
 And this is the rendered version of that code:
 
-<img src="https://ryshackleton.github.io/d3_maptime/img/threelittlecircles.svg">
+<img src="images/three-little-circles.png">
 
 SVG's work similarly to html pages, where tags represent objects that can have *objects nested within them*: each circle is an element *nested within* the SVG. Each circle contains some coordinates of the object's center (cx, cy), and radius (r), so the SVG is just a set of instructions defining the geometry of each object, where to put each object, and how to style the objects in [the SVG coordinate space](https://bl.ocks.org/mbostock/3019563).
 
@@ -339,7 +339,7 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 * All D3 scales have a `domain()`, which represents the INPUT values, and a `range()`, which represents the OUTPUT values.
 
-<img src="images/d3-scales.svg">
+<img src="images/d3-scales.png">
 
 * [D3 scales come in a variety of flavors](http://alignedleft.com/tutorials/d3/scales), but this `scaleLinear()` is just a linear color scale that takes a range of values (mortality data in our case) and spits out a corresponding color. It could spit out ranges of other values or anything else we tell it to by passing in arrays to `domain()` and `range()`
 * See the `/** CHALLENGE */` comment in the text: your job will be to use your D3 knowledge to color the rectangles based on the computed `colorBins`

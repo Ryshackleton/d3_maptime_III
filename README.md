@@ -220,16 +220,17 @@ You should be able to toggle the info button and mouse over the map to make sure
 <details>
  <summary><strong>ADVANCED: How to build your own bash script to do this</strong></summary>
 
-* Download and install [Node.js](https://nodejs.org/en/)**
+* Download and install [Node.js](https://nodejs.org/en/)
 * Install mapshaper globally on your computer (-g flag)
+
 ```
 npm install -g mapshaper
 ```
-**you may see it recommended to install Node via Hombrew or other package manager, but I wouldn't.  Installing a package manager with another package manager isn't always the best idea.
 
 * Add the bash tag `#!/usr/bin/env bash`
 * Start the command with ```mapshaper -i <filename>``` to tell mapshaper which file to open
 * Each additional command can be added as a ```-<command name> <arguments>```, so to get up to the first challenge, our script would look like:
+
 ```bash
 #!/usr/bin/env bash
 
@@ -270,7 +271,46 @@ mapshaper -i './tracts10_shore.shp' \
 </p>
 </details>
 
-## Making the D3 Map
+## 2) Making the D3 Map
 
-### Links
+### D3 Basics
 
+#### To get familiar with D3, go through the first 3 sections of [this tutorial on D3 selections and binding data](https://strongriley.github.io/d3/tutorial/circle.html)
+
+You can also browse through [the previous D3 tutorial](http://maptimesea.github.io/2017/04/04/d3-mapping-II.html) for some more examples and challenges.
+
+Once you're feeling good about D3 Selections and Data Binding, head on to the next section.
+
+### Three Little Rectangles
+
+#### This is a very simple example that's designed to get you acclimated to some of the nuances of D3 and JavaScript
+
+* Open `public_webserver_files/00-three-little-rectangles.html` in your web browser.
+* We'll step through the code together and learn to debug a bit in your browser's Dev Tools.
+
+### Moving toward creating a legend
+
+#### Adding complexity to demonstrate grouping and translations
+
+* Open `public_webserver_files/01-rectangles-in-groups.html` in your web browser.
+
+#### CHALLENGE: Parsing data and computing a color scale
+
+* Open `public_webserver_files/02-scales-from-data-START.html` in your web browser.
+* This file shows how data is parsed in a d3.queue, then passed to our `buildLegend()` function, where we compute the min and max of the data for some color scales
+* See the `/** CHALLENGE */` comment in the text: your job will be to use your D3 knowledge to color the rectangles based on the computed `colorBins`
+
+<details>
+ <summary><strong>Computing Colors Challenge Answer</strong></summary>
+ <p>
+
+##### Open `public_webserver_files/02-scales-from-data-SOLUTION.html` for the solution.
+
+</p>
+</details>
+
+#### Completed Legend
+
+* Open `public_webserver_files/03-legend-complete.html` to see the completed legend with labels.
+
+#### Building the census tracts...

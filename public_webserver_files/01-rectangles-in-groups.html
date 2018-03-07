@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--Header info, scripts, etc-->
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Intro Map</title>
+    <!--D3 version 4-->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <!--TopoJSON version 3-->
+    <script src="https://unpkg.com/topojson@3"></script>
+    <!--D3 Scale Chromatic -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+</head>
+
+<!--css -->
+<style>
+    body {
+        padding: 10px;
+        margin: 0;
+    }
+
+    path {
+        stroke: lightgray;
+        stroke-width: 1px;
+    }
+
+    .map-container {
+        height: 80vh;
+    }
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<!--page content-->
+<body>
+<h1>Towards a legend</h1>
+<div class="map-container"></div>
+
+<!--JavaScript-->
+<script>
+  /** select the div with the class 'map-container', and add an svg to it,
+   *  store the svg 'selection' as svg_selection so we can append elements to the svg */
+  var svg_selection = d3.select('.map-container')
+    .append('svg');
+
+  buildLegend()
+
+  /** FUNCTIONS **/
+  function buildLegend() {
+    /** LAYOUT */
+    var legendGroupLeftX = 40;
+    var legendGroupTopY = 10;
+
+    var rectWidthX = 30;
+    var rectHeightY = 20;
+
+    var rectPaddingRightX = 20;
+
+    /** legend_group -> group with ALL legend items */
+    var legend_selection = svg_selection
+      .append('g')
+      .classed('legend_group', true)
+      .attr('transform', 'translate(' + legendGroupLeftX + ',' + legendGroupTopY + ')');
+
+    /** legend_item_group -> legend items: 1 for each color bar (with text) */
+    var legendItem_selection = legend_selection
+      .selectAll('g')
+      .data(Array(9).fill(0))
+      .enter().append('g')
+      .classed('legend_item_group', true)
+      .attr('transform', function (_, index) {
+        var legendItemLeftSide = (rectWidthX + rectPaddingRightX) * index;
+        return 'translate(' + legendItemLeftSide + ',' + 0 + ')';
+      });
+
+    /** to each group, append a rectangle */
+    legendItem_selection
+      .append('rect')
+      .attr('height', rectHeightY)
+      .attr('width', rectWidthX)
+      .attr('fill', 'steelblue');
+  }
+</script>
+</body>
+</html>

@@ -8,6 +8,8 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <!--TopoJSON version 3-->
     <script src="https://unpkg.com/topojson@3"></script>
+    <!--D3 Scale Chromatic -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 </head>
 
 <!--css -->
@@ -18,8 +20,7 @@
     }
 
     path {
-        fill: whitesmoke;
-        stroke: black;
+        stroke: lightgray;
         stroke-width: 1px;
     }
 
@@ -35,15 +36,42 @@
 
 <!--page content-->
 <body>
-<h1>D3 Intro Map</h1>
+<h1>Opioid Deaths Legend and Map Boundaries</h1>
 <div class="map-container"></div>
 
 <!--JavaScript-->
 <script>
-  /** parse the king county TopoJSON, and pass the results to
-   * the buildChoroplethMap() function */
-  d3.json('data/king_county_census_tracts.json', buildChoroplethMap);
+  /** select the div with the class 'map-container', and add an svg to it,
+   *  store the svg 'selection' as svg_selection so we can append elements to the svg */
+  var svg_selection = d3.select('.map-container')
+    .append('svg');
 
+  /** the color scale for this choropleth map
+   * the domain() is an array of INPUT values
+   * the range() is an array of output values:
+   *    each value in the range is a hex color code (#ffff)
+   *    corresponding linearly to domain values
+   * see: https://github.com/d3/d3-scale#linear-scales
+   * (nColorBars = number of color bars in the scale,
+   *    which must be 9 or less for compatibility with d3.schemeBlues)
+   *    */
+  var nColorBars = 9;
+  var colorScale = d3.scaleLinear()
+    .range(d3.schemeBlues[nColorBars]);
+
+  /** PARSE THE DATA FROM FILES **
+   * d3.queue() lets us parse 1 or more files,
+   * then wait to execute rendering functions to ensure that
+   * we don't try to start building something from data that isn't parsed yet */
+  d3.queue()
+    .defer(d3.csv, 'data/opioidDeaths2014AgeStandardized.csv') // go parse the data from the csv
+    .defer(d3.json, 'data/king_county_census_tracts.json') // go parse the topojson
+    .awaitAll(function (error, resultsArray) {
+      buildLegend(resultsArray[0]);
+      buildChoroplethMap(resultsArray[1]);
+    });
+
+  /** FUNCTIONS **/
   /** take the result of parsing the topojson using d3.json() and build the map */
   function buildChoroplethMap(topology) {
     /** convert the compressed TopoJSON (topology) -> GeoJSON and get each layer */
@@ -53,7 +81,7 @@
      * ...these will be used by projection.fitExtent() below to size and scale the map */
     var mapWidth = window.innerWidth * 0.8;  // map width will be 80% of the view height (pixels)
     var mapHeight = window.innerHeight * 0.8; // map height will be 80% of the view height (pixels)
-    var mapWidthHeight = d3.min([mapWidth, mapHeight]); // take the minimum, and make it square (pixels)
+    var minOfWidthHeight = d3.min([mapWidth, mapHeight]); // take the minimum, and make it square (pixels)
     var mapPadddingTop = 0; // padding around map geometry (pixels)
     var mapPadddingLeft = 100; // padding around map geometry (pixels)
 
@@ -74,16 +102,11 @@
      */
     var projection = d3.geoAlbers()
       .rotate([longitudinalRotation, 0])
-      .fitExtent([[mapPadddingLeft, mapPadddingTop], [mapWidthHeight, mapWidthHeight]], censusTractsGeoJSON);
+      .fitExtent([[mapPadddingLeft, mapPadddingTop], [minOfWidthHeight, minOfWidthHeight]], censusTractsGeoJSON);
 
     /** The geoPath takes in arrays of [long, lat] values and converts them to svg <path> objects */
     var geoPath = d3.geoPath()
       .projection(projection);
-
-    /** select the div with the class 'map-container', and add an svg to it,
-     *  store the svg "selection" as svg_selection */
-    var svg_selection = d3.select('.map-container')
-      .append('svg');
 
     /** append a group (g) to the svg */
     svg_selection.append('g')
@@ -101,6 +124,92 @@
       .classed('census_tract_boundary', true)
       /** the 'd' attribute represents the drawing instructions for each path (line), so set the geoPath function to get that line drawing */
       .attr('d', geoPath);
+  }
+
+  /** FUNCTIONS **/
+  function buildLegend(data) {
+    /** COLOR SCALE
+     * Adjust the color scale to the domain (min and max boundaries) of the data */
+    /** compute the [min, max] values of the data set */
+    var min = d3.min(data, function (datum) { return +datum.val; });
+    var max = d3.max(data, function (datum) { return +datum.val; });
+
+    /** create a domain for the color range by breaking the data up into 9 bins of equal size */
+    var arrayFrom0To8 = d3.range(nColorBars);
+    var colorBins = arrayFrom0To8.map(function (d) {
+      return max * (d + 1) / nColorBars;
+    });
+    /** the call to map() above is the same as:
+     var colorBins = Array(9);
+     for(var i=0; i<9; i++) {
+      colorBins[i] = max * (i + 1) / 9;
+    }
+     */
+
+    /** set the domain (input values) of the color scale */
+    colorScale.domain(colorBins);
+
+    /** LAYOUT */
+    var legendGroupLeftX = 40;
+    var legendGroupTopY = 10;
+
+    var rectWidthX = 30;
+    var rectHeightY = 20;
+
+    var rectPaddingRightX = 20;
+    var rectPaddingBottomY = 10;
+
+    /** legend_group -> group with ALL legend items */
+    var legend_selection = svg_selection
+      .append('g')
+      .classed('legend_group', true)
+      .attr('transform', 'translate(' + legendGroupLeftX + ',' + legendGroupTopY + ')');
+
+    /** legend_item_group -> legend items: 1 for each color bar (with text) */
+    var legendItem_selection = legend_selection
+      .selectAll('g')
+      .data(colorBins)
+      .enter().append('g')
+      .classed('legend_item_group', true)
+      .attr('transform', function (_, index) {
+        var legendItemLeftSide = (rectWidthX + rectPaddingRightX) * index;
+        return 'translate(' + legendItemLeftSide + ',' + 0 + ')';
+      });
+
+    /** to each group, append a rectangle */
+    legendItem_selection
+      .append('rect')
+      .attr('height', rectHeightY)
+      .attr('width', rectWidthX)
+      .attr('fill', function (datum) {
+        return colorScale(datum);
+      });
+
+    /** and also append a text label indicating the min and max values of this bin */
+    legendItem_selection
+      .append('text')
+      .style('text-anchor', 'middle')
+      .classed('legend_text_item', true)
+      .attr('x', rectWidthX / 2)
+      .attr('y', rectHeightY + rectPaddingBottomY)
+      .attr('dy', '.35em')
+      .text(function (_, index) {
+        if (index === 0) {
+          return min.toFixed(0) + '-' + colorBins[index].toFixed(0);
+        }
+        return colorBins[index-1].toFixed(0) + '-' + colorBins[index].toFixed(0);
+      });
+
+    /** add a label to indicate what the numbers mean
+     * note that we're using x/y offsets here, which is the way text is usually offset in SVG's
+     * we could just as easily have put the text in another group, and transformed it */
+    legend_selection
+      .append('text')
+      .classed('legend_text_title', true)
+      .attr('x', (rectHeightY + rectPaddingRightX) * nColorBars / 3)
+      .attr('y', rectHeightY * 2 + rectPaddingBottomY)
+      .attr('dy', '.35em')
+      .text('Deaths Per 100,000 people');
   }
 </script>
 </body>

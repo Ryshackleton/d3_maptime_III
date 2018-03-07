@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--Header info, scripts, etc-->
+<head>
+  <meta charset="UTF-8">
+  <title>D3 Intro Map</title>
+  <!--D3 version 4-->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+
+<!--css -->
+<style>
+  body {
+    padding: 10px;
+    margin: 0;
+  }
+
+  path, rect {
+    stroke: lightgray;
+    stroke-width: 1px;
+  }
+
+  .map-container {
+    height: 80vh;
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<!--page content-->
+<body>
+<h1>D3 to create a few rectangles</h1>
+<div class="map-container"></div>
+
+<!--JavaScript-->
+<script>
+  /** select the div with the class 'map-container', and add an svg to it,
+   *  store the svg 'selection' as svg_selection so we can append elements to the svg */
+  var svg_selection = d3.select('.map-container')
+    .append('svg');
+
+  var rectangleHeights = [50, 100, 300];
+  var rectangleWidth = 50;
+
+  /** create 3 rectangles in a row */
+  svg_selection
+    .selectAll('rect')
+    .data(rectangleHeights)
+    .enter()
+    .append('rect')
+    .attr('width', rectangleWidth)
+    .attr('height', function(rectangleHeight) { return rectangleHeight; })
+    .classed('my_rectangle_group', true)
+    .attr('transform', function (rectangleHeight, index) {
+      return 'translate(' + (rectangleWidth * index) + ',' + 0 + ')';
+    });
+
+</script>
+</body>
+</html>
+

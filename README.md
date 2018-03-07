@@ -54,17 +54,20 @@ And this is the rendered version of that code:
 
 SVG's work similarly to html pages, where tags represent objects that can have *objects nested within them*: each circle is an element *nested within* the SVG. Each circle contains some coordinates of the object's center (cx, cy), and radius (r), so the SVG is just a set of instructions defining the geometry of each object, where to put each object, and how to style the objects in [the SVG coordinate space](https://bl.ocks.org/mbostock/3019563).
 
+<img src="images/svg_coordinate_system.png">
+
 It's also worth noting that D3 has the ability to select, write, and edit any element on the [HTML DOM](https://www.w3schools.com/js/js_htmldom.asp), and [any of the SVG shape elements](https://www.w3schools.com/graphics/svg_examples.asp) like rectangles and lines.  Later we'll learn to use D3 to create [`<path>` elements](https://www.w3schools.com/graphics/svg_path.asp)  to draw complex country boundaries on our map.
 
 # Tutorial Time!
 
 ### What do I need for this tutorial?
 
-To successfully follow this tutorial you need a text editor (such as Notepad++, Brackets, or Sublime Text). Go ahead and use your personal favorite, or if you don't have one installed, download [Brackets](http://brackets.io), it's free.
+1. A text editor (such as Notepad++, [Brackets](http://brackets.io), or Sublime Text).
 
-You will also need a local web server.  Here are 2 good options:
-1. Here's a [Chrome app](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en) that's lightweight and works great. Upon opening the app, it will prompt you to choose a folder to serve files from.
-2. [MAMP](https://www.mamp.info/en/) is a free apache webserver for MacOS and Windows. (on MacOS, you'll put your files in `/Applications/MAMP/htdocs/`, and usually access your files via http://localhost:8888/)
+1. You will also need a local web server.  Here are 2 good options:
+    * Here's a [Chrome app](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en) that's lightweight and works great. Upon opening the app, it will prompt you to choose a folder to serve files from.
+    * [MAMP](https://www.mamp.info/en/) is a free apache webserver for MacOS and Windows. (on MacOS, you'll put your files in `/Applications/MAMP/htdocs/`, and usually access your files via http://localhost:8888/)
+1. **[Clone this repo for the starter files.](https://github.com/Ryshackleton/d3_maptime_III.git)**
 
 ## Tips
 
@@ -87,7 +90,9 @@ You found the answer!
 
 Today, we'll build a choropleth of some local health data from the Institute for Health Metrics and Evaluation.  Specifically, we'll be building a colored map showing Mortality Rates due to opioid use disorders.
 
-We'll just build the choropleth part of [this Leaflet-based map](http://ihmeuw.org/4cs9)
+![Final Map](images/FinalMap.png)
+
+We're basically building just the choropleth part of [this Leaflet-based map](http://ihmeuw.org/4cs9), so you can compare your results to this one.
 
 The steps will be:
 
@@ -95,23 +100,27 @@ The steps will be:
     * this is mostly done for you, but we'll look at the data to figure out how to match up our data file to the census tracts on our map
 1. Convert our shapefile to TopoJSON
     * TopoJSON is a compressed vector format for the web. We'll use Mapshaper to manipulate the shapefile to fit our needs
+1. A very brief intro to D3 and selections
 1. Use D3 to build the map
-
-## Git Repo
-
-[Clone this repo for the starter files.](https://github.com/Ryshackleton/d3_maptime_III.git)
 
 ## Data Wrangling
 
+### Dead people data
+The data for this tutorial comes from the [Institute for Health Metrics and Evaluation - Global Health Data Exchange](http://ghdx.healthdata.org/record/united-states-king-county-washington-life-expectancy-and-cause-specific-mortality-census), and consists of mortality rates due to opioid use from 1990-2014 (units are: *Deaths Per 100,000 people*).  The raw data file (`/public_webserver_files/data/IHME_KING_COUNTY_WA_MORTALITY_1990_2014_OPIOID_USE_DISORDERS_Y2017M09D05`) contains 119,400 rows and includes data for multiple years, for males, females, and both sexes, as well as for multiple age groups (All Ages, and Age Standardized).
 
-### Data Sources
+### I've filtered the data down to just the following data using this [Observable notebook](https://beta.observablehq.com/@ryshackleton/maptime-seattle-d3-mapping-iii)**
 
-[King County GIS data portal](https://www5.kingcounty.gov/gisdataportal/)
-[Census Tracts Shapefile](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=tracts10_shore)
 
-[King County Neighborhood data](https://gis-kingcounty.opendata.arcgis.com/datasets/metro-neighborhoods-in-king-county--neighborhood-area?geometry=-122.918%2C47.536%2C-121.748%2C47.698)
+* 2014 (the most recent year with suitably accurate data)
+* age standardized (all ages, weighted by the number of people in each age group)
+* both sexes
+* death rates (not Years of Life Lost due to opioid deaths, which is also contained in the raw data)
 
-[Institute for Health Metrics and Evaluation - Global Health Data Exchange](http://ghdx.healthdata.org/record/united-states-king-county-washington-life-expectancy-and-cause-specific-mortality-census)
+**[Observable](https://beta.observablehq.com) is a brand new tool, written by Mike Bostock, the creator of D3, that is basically the JavaScript/D3 version of a [Jupyter notebook](http://jupyter.org/).
+
+### Geographic Data Wrangling
+
+The shapefile I'm using in this tutorial comes from the [King County GIS data portal](https://www5.kingcounty.gov/gisdataportal/).  We're using the [2010 Census Tracts Shapefile](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=tracts10_shore)
 
 ### Shapefile to TopoJSON
 
@@ -148,10 +157,10 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 <details>
  <summary><strong>Challenge 2 Answer</strong></summary>
  <p>
-  
+
  1. Type ```filter-fields 'TRACT_FLT'``` into the Mapshaper console.
  2. Now use the info button and mouse over each tract to be sure that only the `TRACT_FLT` field is still there.
- 
+
  </p>
 </details>
 
@@ -164,7 +173,7 @@ Notice that there are a bunch of extra data fields (GEO_ID_TRT, FEATURE_ID, etc)
 <details>
  <summary><strong>Challenge 3 Answer</strong></summary>
  <p>
-  
+
 ```
 join IHME_location_id_TO_tract_id.csv keys=TRACT_FLT,tract_id
 ```

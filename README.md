@@ -288,16 +288,60 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 * Open `public_webserver_files/00-three-little-rectangles.html` in your web browser.
 * We'll step through the code together and learn to debug a bit in your browser's Dev Tools.
 
+#### Optional Challenge: figure out how to make D3 add some space between the three bars
+
+* Hint, look for where we add the `transform: translate(...)` attribute to `my_rectangle`
+
+```javascript
+    ...
+    .attr('transform', function (rectangleHeight, index) {
+      return 'translate(' + (rectangleWidth * index) + ',' + 0 + ')';
+    });
+```
+
+<details>
+ <summary><strong>Optional Challenge Answer</strong></summary>
+ <p>
+
+ * You'll just need to add some padding where we compute the new bar transformation
+
+```javascript
+    ...
+    .attr('transform', function (rectangleHeight, index) {
+      var padding = 20;
+      return 'translate(' + ((rectangleWidth + padding) * index) + ',' + 0 + ')';
+    });
+```
+
+</p>
+</details>
+
 ### Moving toward creating a legend
 
-#### Adding complexity to demonstrate grouping and translations
+#### Grouping elements to make transformations simpler
 
 * Open `public_webserver_files/01-rectangles-in-groups.html` in your web browser.
+* This file has a lot more going on:
+    * first off, there are 2 "selections" happening here:
+        1. we're appending a `<g class='legend_group'>` element, which is an SVG group to hold ALL of our legend items
+        1. We're appending another `<g class='legend_item_group>` to the `legend_group` and binding an empty array of 9 items, so we'll get 9 `<g class='legend_item_group'>` elements
+    * then all we have to do is append `<rect>` elements to each `legend_item_group`, and our rectangles magically land where we want them to
 
 #### CHALLENGE: Parsing data and computing a color scale
 
 * Open `public_webserver_files/02-scales-from-data-START.html` in your web browser.
-* This file shows how data is parsed in a d3.queue, then passed to our `buildLegend()` function, where we compute the min and max of the data for some color scales
+* A lot going on here, so bear with me...
+* This file does several new things:
+    1. Data is parsed in a d3.queue, which just `defer()`s anything from happening until AFTER the file is parsed
+    1. In `awaitAll()`, we get the data as the variable `resultsArray`.
+    1. Then we pass the first element of the results (another array of ALL of our data) to our `buildLegend()` function.
+    1. In `buildLegend()`, we compute the min and max of the data for some color scales
+
+* All D3 scales have a `domain()`, which represents the INPUT values, and a `range()`, which represents the OUTPUT values.
+
+![D3 Scale Image]('images/d3-scales.svg')
+
+* [D3 scales come in a variety of flavors](http://alignedleft.com/tutorials/d3/scales), but this `scaleLinear()` is just a linear color scale that takes a range of values (mortality data in our case) and spits out a corresponding color. It could spit out ranges of other values or anything else we tell it to by passing in arrays to `domain()` and `range()`
 * See the `/** CHALLENGE */` comment in the text: your job will be to use your D3 knowledge to color the rectangles based on the computed `colorBins`
 
 <details>

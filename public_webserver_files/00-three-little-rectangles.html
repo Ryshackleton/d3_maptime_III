@@ -47,13 +47,15 @@
 
   /** create 3 rectangles in a row */
   svg_selection
-    .selectAll('rect')
-    .data(rectangleHeights)
-    .enter()
-    .append('rect')
-    .attr('width', rectangleWidth)
-    .attr('height', function(rectangleHeight) { return rectangleHeight; })
-    .classed('my_rectangle_group', true)
+    .selectAll('rect') /** tells D3 that the incoming selection will be of type <rect> */
+    .data(rectangleHeights) /** join the data */
+    .enter() /** get a selection representing the incoming elements */
+    .append('rect') /** append a <rect> to each node */
+    .attr('width', rectangleWidth) /** set the standard width */
+    .attr('height', function(rectangleHeight) { return rectangleHeight; }) /** extract the bound height data for EACH rectangle in the array */
+    .classed('my_rectangle', true) /** add the class 'my_rectangle' so we can keep track of the element or style it with CSS */
+    /** use the "index" property that is like the i in a for loop to compute an
+     * offset for each rectangle */
     .attr('transform', function (rectangleHeight, index) {
       return 'translate(' + (rectangleWidth * index) + ',' + 0 + ')';
     });

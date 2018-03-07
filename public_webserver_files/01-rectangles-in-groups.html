@@ -65,18 +65,24 @@
       .classed('legend_group', true)
       .attr('transform', 'translate(' + legendGroupLeftX + ',' + legendGroupTopY + ')');
 
-    /** legend_item_group -> legend items: 1 for each color bar (with text) */
+    /** legend_item_group -> legend items: we're just creating a placeholder array here
+     * that will eventually become some color that we link to our data */
+    var emptyArrayOf9Items = Array(9).fill(0);
     var legendItem_selection = legend_selection
       .selectAll('g')
-      .data(Array(9).fill(0))
+      .data(emptyArrayOf9Items)
       .enter().append('g')
       .classed('legend_item_group', true)
+      /** use the "index" property that is like the i in a for loop to compute an
+       * offset for each rectangle */
       .attr('transform', function (_, index) {
         var legendItemLeftSide = (rectWidthX + rectPaddingRightX) * index;
         return 'translate(' + legendItemLeftSide + ',' + 0 + ')';
       });
 
-    /** to each group, append a rectangle */
+    /** to each group, append a rectangle
+     * NOTICE THAT WE DON'T NEED TO TRANSFORM THESE RECTANGLES,
+     * the transformation was already done to the <g> that contains them */
     legendItem_selection
       .append('rect')
       .attr('height', rectHeightY)

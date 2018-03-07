@@ -88,7 +88,7 @@ You found the answer!
 
 ## What map are we making?
 
-Today, we'll build a choropleth of some local health data from the Institute for Health Metrics and Evaluation.  Specifically, we'll be building a colored map showing Mortality Rates due to opioid use disorders.
+Today, we'll build a choropleth of some local health data from the Institute for Health Metrics and Evaluation.  Specifically, we'll be building a colored map showing Mortality Rates due to opioid use disorders.  The data is grouped by 2010 Census Tract Boundaries, so that's the geographic grouping we'll be working with.
 
 <img src="images/FinalMap.png"/>
 
@@ -107,7 +107,7 @@ The steps will be:
 
 ## 1) Data Wrangling
 
-### Dead people data
+### Mortality Data: data about dead people
 The data for this tutorial comes from the [Institute for Health Metrics and Evaluation - Global Health Data Exchange](http://ghdx.healthdata.org/record/united-states-king-county-washington-life-expectancy-and-cause-specific-mortality-census), and consists of mortality rates due to opioid use from 1990-2014 (units are: *Deaths Per 100,000 people*).  The raw data file (`/public_webserver_files/data/IHME_KING_COUNTY_WA_MORTALITY_1990_2014_OPIOID_USE_DISORDERS_Y2017M09D05`) contains 119,400 rows and includes data for multiple years, for males, females, and both sexes, as well as for multiple age groups (All Ages, and Age Standardized).
 
 #### I've filtered the data down to just the following data using this [Observable notebook](https://beta.observablehq.com/@ryshackleton/maptime-seattle-d3-mapping-iii)**
@@ -127,6 +127,16 @@ The shapefile I'm using in this tutorial comes from the [King County GIS data po
 The main issue with the geographic data is that the census tracts are indexed by census tract number (`TRACT_FLT`), whereas the mortality data is indexed by IHME's `location_id`. We'll take care of that issue using Mapshaper.
 
 ## 2) Convert Shapefile to TopoJSON and JOIN `location_id` to the topology
+
+### The goal of this section is to do several things to the shapefile to make it **web ready**
+
+1. Remove the extra shapefile cruft (delete unused data fields)
+1. Add the IHME-specific `location_id` to each of the census tract boundaries.  This is so we can quickly 'match up' the IHME Mortality data to the right census tract.
+1. Make sure our data is in longitude, latitude (or any un-projected coordinate system)
+1. Do a bit of simplification and renaming of files
+
+
+### What's a TopoJSON?
 
 [TopoJSON](https://github.com/topojson/topojson-client/blob/master/README.md#feature) is a simplified geographic format that ensures that all vertices are shared between different lines in a geometry, with arcs indexed between the shared vertices. This makes for very, very small files that can be quickly transmitted over the web.
 

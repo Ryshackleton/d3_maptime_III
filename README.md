@@ -215,7 +215,7 @@ You should be able to toggle the info button and mouse over the map to make sure
 
 1. Just click the `Export` button in the top right, select `TopoJSON` and save your file!
 
-![Export TopoJSON](images/ExportTopojson.png)
+<img src="images/ExportTopojson.png" style="width:200px;height:200px;"/>
 
 <details>
  <summary><strong>ADVANCED: How to build your own bash script to do this</strong></summary>
@@ -322,6 +322,7 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 * Open `public_webserver_files/01-rectangles-in-groups.html` in your web browser.
 * This file has a lot more going on:
+
     * first off, there are 2 "selections" happening here:
         1. we're appending a `<g class='legend_group'>` element, which is an SVG group to hold ALL of our legend items
         1. We're appending another `<g class='legend_item_group>` to the `legend_group` and binding an empty array of 9 items, so we'll get 9 `<g class='legend_item_group'>` elements
@@ -342,6 +343,21 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 <img src="images/d3-scales.png">
 
 * [D3 scales come in a variety of flavors](http://alignedleft.com/tutorials/d3/scales), but this `scaleLinear()` is just a linear color scale that takes a range of values (mortality data in our case) and spits out a corresponding color. It could spit out ranges of other values or anything else we tell it to by passing in arrays to `domain()` and `range()`
+
+* We want a legend scale with a few `colorBins` representing mortality data values between the min and max of our data, so we can basically just create a few colors of evenly spaced intervals using [d3.range()](https://github.com/d3/d3-array/blob/master/README.md#range).  The code that does that looks like this:
+
+```javascript
+    /** compute the [min, max] values of the data set */
+    var min = d3.min(data, function (datum) { return +datum.val; });
+    var max = d3.max(data, function (datum) { return +datum.val; });
+
+    /** create a domain for the color range by breaking the data up into 9 bins of equal size */
+    var arrayFrom0To8 = d3.range(nColorBars);
+    var colorBins = arrayFrom0To8.map(function (d) {
+      return max * (d + 1) / nColorBars;
+    });
+``` 
+
 * See the `/** CHALLENGE */` comment in the text: your job will be to use your D3 knowledge to color the rectangles based on the computed `colorBins`
 
 <details>
@@ -350,6 +366,11 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 
 ##### Open `public_webserver_files/02-scales-from-data-SOLUTION.html` for the solution.
 
+```javascript
+      .attr('fill', function (datum) {
+        return colorScale(datum); /** <- CHALLENGE SOLUTION: just call colorScale() on the datum value from the bound colorBin data */
+      });
+```
 </p>
 </details>
 
@@ -358,3 +379,46 @@ Once you're feeling good about D3 Selections and Data Binding, head on to the ne
 * Open `public_webserver_files/03-legend-complete.html` to see the completed legend with labels.
 
 ### Building the census tracts...
+
+* We'll go through this one together the challenge will be...
+
+#### CHALLENGE: Apply fill to the map colors in the same way we did for the legend
+
+* See somewhere around line 132:
+
+```javascript
+      .attr('fill', function (geoDatum) {
+        /** find the mortality datum that has the same location_id as this geo path */
+        var mortalityDatumObject = mortalityDataArray.find(function(mortalityDatum) {
+          return +mortalityDatum.location_id === geoDatum.properties.location_id;
+        });
+        /** CHALLENGE: get the appropriate data values and use the color scale to return the correct fill color */
+        // return <something>;
+      });
+````
+
+<details>
+ <summary><strong>Computing Colors Challenge Answer</strong></summary>
+ <p>
+
+##### Open `public_webserver_files/05-color-census-tracts-SOLUTION.html` for the solution
+
+```javascript
+      .attr('fill', function (geoDatum) {
+        /** find the mortality datum that has the same location_id as this geo path */
+        var mortalityDatumObject = mortalityDataArray.find(function(mortalityDatum) {
+          return +mortalityDatum.location_id === geoDatum.properties.location_id;
+        });
+        /** check for missing object, return black if we didn't find the right mortality datum */
+        if (mortalityDatumObject === undefined) {
+          return 'black';
+        }
+        /** get the mortality value and convert it from a string to a number */
+        var mortalityValue = +mortalityDatumObject.val;
+        /** return the color scale that corresponds */
+        return colorScale(mortalityValue);
+      });;
+```
+
+</p>
+</details>
